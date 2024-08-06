@@ -6,7 +6,7 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
-#include <Arduino.h>
+
 
 extern uint16_t temp;
 extern String info;
