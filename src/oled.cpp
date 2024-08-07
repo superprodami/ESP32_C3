@@ -1,4 +1,6 @@
 #include "oled.h"
+#include <U8g2lib.h>
+ #include "wifi_config.h"
 
 #define SCL 5
 #define SDA 4
@@ -11,11 +13,21 @@ void oled_init(void)
     u8g2.enableUTF8Print(); // u8g2库字体使能
 }
 
-void oled_weather_task(void *pvParameters)
+void oled_task(void *pvParameters)
 {
-    uint32_t count;
 
-    while(1){
+    while (1)
+    {
+
+
+
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+}
+
+
+void oled_weather(void)
+{
     // 清除显示
     u8g2.clearBuffer();
     // 切换中文GB字体
@@ -38,20 +50,7 @@ void oled_weather_task(void *pvParameters)
     u8g2.drawGlyph(90, 60, 0x0045);
     // 显示绘制内容
     u8g2.sendBuffer();
-    
-    count++;
-    if(count%60 ==1)  
-    Get_weather();      //一分钟更新一次天气
-    if(count > 3600)
-    count = 0;          //防止溢出
 
-    vTaskDelay(pdMS_TO_TICKS(1000));
-    }
+    Get_weather(); // 一分钟更新一次天气
+
 }
-
-#define SUN	0
-#define SUN_CLOUD  1
-#define CLOUD 2
-#define RAIN 3
-#define THUNDER 4
-
