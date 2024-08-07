@@ -28,29 +28,29 @@ void oled_task(void *pvParameters)
 
 void oled_weather(void)
 {
-    // 清除显示
-    u8g2.clearBuffer();
-    // 切换中文GB字体
-    u8g2.setFont(u8g2_font_wqy14_t_gb2312);
-    u8g2.setFontDirection(0);
-    // 设置光标位置并显示数据
-    u8g2.setCursor(0, 15);
-    u8g2.print("十堰 ");
-    u8g2.print("温度：");
-    u8g2.print(temp);
-    u8g2.print("℃");
-    u8g2.setCursor(0, 35);
-    u8g2.print("天气：");
-    u8g2.print(info);
-    u8g2.setCursor(0, 55);
-    u8g2.print("空气指数：");
-    u8g2.print(aqi);
-    // 选择字体大小并绘制图案
-    u8g2.setFont(u8g2_font_open_iconic_weather_4x_t);
-    u8g2.drawGlyph(90, 60, 0x0045);
-    // 显示绘制内容
-    u8g2.sendBuffer();
+    // // 清除显示
+    // u8g2.clearBuffer();
+    // // 切换中文GB字体
+    // u8g2.setFont(u8g2_font_wqy14_t_gb2312);
+    // u8g2.setFontDirection(0);
+    // // 设置光标位置并显示数据
+    // u8g2.setCursor(0, 15);
+    // u8g2.print("十堰 ");
+    // u8g2.print("温度：");
+    // u8g2.print(temp);
+    // u8g2.print("℃");
+    // u8g2.setCursor(0, 35);
+    // u8g2.print("天气：");
+    // u8g2.print(info);
+    // u8g2.setCursor(0, 55);
+    // u8g2.print("空气指数：");
+    // u8g2.print(aqi);
+    // // 选择字体大小并绘制图案
+    // u8g2.setFont(u8g2_font_open_iconic_weather_4x_t);
+    // u8g2.drawGlyph(90, 60, 0x0045);
+    // // 显示绘制内容
+    // u8g2.sendBuffer();
 
-    Get_weather(); // 一分钟更新一次天气
+    // Get_weather(); // 一分钟更新一次天气
 
 }
