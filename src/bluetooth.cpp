@@ -17,24 +17,54 @@ char state = 48;
 
 BLECharacteristic controlCharacteristic(CONTROL_UUID, BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE);
 
+
+// 回调函数声明
+class MyServerCallbacks: public BLEServerCallbacks {
+    void onConnect(BLEServer* pServer) {
+      Serial.println("有设备接入连接");
+    };
+
+    void onDisconnect(BLEServer* pServer) {
+      Serial.println("有设备断开连接，已重新广播");
+      // 在有设备接入后Advertising广播会被停止，所以要在设备断开连接时重新开启广播
+      // 不然的话只有重启ESP32后才能重新搜索到
+      pServer->startAdvertising(); //该行效果同 BLEDevice::startAdvertising();
+    }
+};
+
+class MyCallbacks: public BLECharacteristicCallbacks {
+    void onRead(BLECharacteristic* pCharacteristic) { // 客户端读取事件回调函数
+      Serial.println("触发读取事件");
+    }
+
+    void onWrite(BLECharacteristic *pCharacteristic) { // 客户端写入事件回调函数
+      Serial.println("触发写入事件");
+    }
+};
+
+
 // 设置服务器所需要的配置
 void bluetooth_init(void)
 {
-    BLEDevice::init("BLE_HWD");                                  // 创建设备
+    BLEDevice::init("BLE_DAMI");                                  // 创建设备
     BLEServer *pServer = BLEDevice::createServer();              // 设置为服务器
     BLEService *pService = pServer->createService(SERVICE_UUID); // 使用上面的服务UUID创建服务
     // 添加一个带有对象名（官方UUID）的特征，不带对象，这个特征不会改变
     BLECharacteristic *nameCharacteristic = pService->createCharacteristic(BLEUUID((uint16_t)0x2A00), BLECharacteristic::PROPERTY_READ);
     nameCharacteristic->setValue("LED");                 // 显示特征名
+    
     pService->addCharacteristic(&controlCharacteristic); // 增加一个控制LED的特性
     controlCharacteristic.setValue(&state);
+    
 
     // 设置特征， 使用上面的特征UUID，需要将特征的属性作为参数传递。此情况下是读或写
     BLECharacteristic *pCharacteristic = pService->createCharacteristic(
         CHARACTERISTIC_UUID,
         BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE);
-    pCharacteristic->setValue("Hello HWD!!!"); // 创建完特征后，可以使用setValue()方法为其在此赋值
+    pCharacteristic->setValue("Hello DAMI!!!"); // 创建完特征后，可以使用setValue()方法为其在此赋值
+    pCharacteristic->setCallbacks(new MyCallbacks());
     // 此值可以是其他传感器的值
+
     pService->start();
     // 下面是启动服务和广播，以便其他BLE设备找到此 BLE 设备
     BLEAdvertising *pAdvertising = BLEDevice::getAdvertising(); // BLE广播
@@ -42,6 +72,7 @@ void bluetooth_init(void)
     pAdvertising->setScanResponse(true);                        // 广播扫描响应
     pAdvertising->setMinPreferred(0x06);                        // 广播设置最小首选
     pAdvertising->setMinPreferred(0x12);                        // 广播设置最小首选
+    pServer->setCallbacks(new MyServerCallbacks());             // 绑定回调函数   
     BLEDevice::startAdvertising();                              // BLE 设备启动广播，特征已经定义，可以在手机中读取它
     pinMode(led, OUTPUT);
     digitalWrite(led, LOW);
