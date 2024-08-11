@@ -18,8 +18,8 @@ BLECharacteristic *pCharacteristic_test = NULL;
 bool deviceConnected = 0;
 const int led = 12;
 char state = 48;
-char test_value[20] = "Hello DAMI!!!";
-uint32_t value_1 = 0;
+std::string test_value = "Hello DAMI!!!";
+uint32_t value_notify = 0;
 
 // 回调函数声明
 class MyServerCallbacks : public BLEServerCallbacks
@@ -50,8 +50,8 @@ class MyCallbacks : public BLECharacteristicCallbacks
     void onWrite(BLECharacteristic *pCharacteristic)
     { // 客户端写入事件回调函数
         Serial.print("写入数据：");
-        std::string readValue = pCharacteristic_test ->getValue();
-        Serial.printf("%s\n",readValue.c_str());
+        std::string readValue = pCharacteristic_test->getValue();
+        Serial.printf("%s\n", readValue.c_str());
     }
 };
 
@@ -65,13 +65,14 @@ void bluetooth_init(void)
     // 设置特征， 使用上面的特征UUID，
     pCharacteristic_test = pService->createCharacteristic(
         test_UUID,
-        BLECharacteristic::PROPERTY_NOTIFY | 
-        BLECharacteristic::PROPERTY_WRITE  |
-        BLECharacteristic::PROPERTY_READ);
-    pCharacteristic_test->setValue(test_value); // 创建完特征后，可以使用setValue()方法为其在此赋值
-    pCharacteristic_test->setCallbacks(new MyCallbacks()); //绑定事件回调函数
+        BLECharacteristic::PROPERTY_NOTIFY |
+            BLECharacteristic::PROPERTY_WRITE |
+            BLECharacteristic::PROPERTY_READ);
+    pCharacteristic_test->setValue(test_value.c_str());    // 创建完特征后，可以使用setValue()方法为其在此赋值
+    pCharacteristic_test->setCallbacks(new MyCallbacks()); // 绑定事件回调函数
     pCharacteristic_test->addDescriptor(new BLE2902());
     pService->start();
+
     // 下面是启动服务和广播，以便其他BLE设备找到此 BLE 设备
     BLEAdvertising *pAdvertising = BLEDevice::getAdvertising(); // BLE广播
     pAdvertising->addServiceUUID(SERVICE_UUID);                 // 广播添加服务 UUID
@@ -85,22 +86,26 @@ void bluetooth_init(void)
     Serial.println("Characteristic defined! Now you can read it in your phone!"); // 提示消息
 }
 
-
 void blue_control_led(void)
 {
-    if(deviceConnected)
+    if (deviceConnected)
     {
-    //  
-    
-    // if (readValue.compare(test_value) != 0)
-    // {
-    //     memcpy(test_value,readValue.data(),20);
-        pCharacteristic_test ->setValue((uint8_t*)&value_1, 4);
-        pCharacteristic_test ->notify();
-        value_1++;
-    //     Serial.println(readValue.data());
-     
-    // }
+        std::string readValue = pCharacteristic_test->getValue();
+        if (readValue != test_value)
+        {
+            test_value = readValue;
+            if (readValue.compare("H") == 0 || readValue.compare("h") == 0)
+            {
+                digitalWrite(led, HIGH);
+                pCharacteristic_test->setValue(test_value.c_str());
+            }
+            else if (readValue.compare("L") == 0 || readValue.compare("l") == 0)
+            {
+                digitalWrite(led, LOW);
+                pCharacteristic_test->setValue(test_value.c_str());
+            }
+            pCharacteristic_test->notify();
+            value_notify++;
+        }
     }
-       delay(10000);
 }
