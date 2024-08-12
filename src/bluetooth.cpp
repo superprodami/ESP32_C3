@@ -8,6 +8,7 @@
 #include <BLE2902.h>
 #include <Arduino.h>
 #include "bluetooth.h"
+#include "Servo.h"
 
 #define SERVICE_UUID "b408e1a0-3d8a-11ed-b878-0242ac120002" // 服务UUID
 #define test_UUID "dfd84064-3d8a-11ed-b878-0242ac120002"    // 特征UUID
@@ -17,9 +18,7 @@ BLECharacteristic *pCharacteristic_test = NULL;
 
 bool deviceConnected = 0;
 const int led = 12;
-char state = 48;
-std::string test_value = "Hello DAMI!!!";
-uint32_t value_notify = 0;
+std::string Judge_value = "Hello DAMI!!!"; // 初始化数据&判断数据是否更新
 
 // 回调函数声明
 class MyServerCallbacks : public BLEServerCallbacks
@@ -68,7 +67,7 @@ void bluetooth_init(void)
         BLECharacteristic::PROPERTY_NOTIFY |
             BLECharacteristic::PROPERTY_WRITE |
             BLECharacteristic::PROPERTY_READ);
-    pCharacteristic_test->setValue(test_value.c_str());    // 创建完特征后，可以使用setValue()方法为其在此赋值
+    pCharacteristic_test->setValue(Judge_value.c_str());   // 创建完特征后，可以使用setValue()方法为其在此赋值
     pCharacteristic_test->setCallbacks(new MyCallbacks()); // 绑定事件回调函数
     pCharacteristic_test->addDescriptor(new BLE2902());
     pService->start();
@@ -90,22 +89,68 @@ void blue_control_led(void)
 {
     if (deviceConnected)
     {
+        std::string prefix_Servo = "s";
+
         std::string readValue = pCharacteristic_test->getValue();
-        if (readValue != test_value)
+        if (readValue != Judge_value)
         {
-            test_value = readValue;
-            if (readValue.compare("H") == 0 || readValue.compare("h") == 0)
+            Judge_value = readValue;
+
+            // LED
+            if (readValue == "H" || readValue == "h")
             {
                 digitalWrite(led, HIGH);
-                pCharacteristic_test->setValue(test_value.c_str());
             }
-            else if (readValue.compare("L") == 0 || readValue.compare("l") == 0)
+            else if (readValue == "L" || readValue == "l")
             {
                 digitalWrite(led, LOW);
-                pCharacteristic_test->setValue(test_value.c_str());
             }
-            pCharacteristic_test->notify();
-            value_notify++;
+
+            // 舵机
+            else if (readValue.find(prefix_Servo, 0) == 0) // 判断是否以"Servo"开头
+            {
+                std::string number_str = readValue.substr(prefix_Servo.length()); // 获取"Servo"之后的子字符串
+
+                // 确保 number_str 不为空
+                if (number_str.empty())
+                {
+                    Serial.println("请在's'后输入有效角度");
+                    return;
+                }
+
+                // 尝试将字符串转换为整数
+                int number = 0;
+                bool validNumber = true;
+
+                for (char c : number_str)
+                {
+                    if (!isdigit(c)) // 检查每个字符是否为数字
+                    {
+                        validNumber = false;
+                        break;
+                    }
+                }
+
+                if (validNumber)
+                {
+                    number = std::atoi(number_str.c_str()); // 将字符串转换为整数
+
+                    // 检查 number 是否在合法范围内
+                    if (number < 0 || number > 180) // 假设舵机角度范围是 0 到 180
+                    {
+                        Serial.println("超出舵机范围");
+                    }
+                    else
+                    {
+                        Servo_target[0] = number;
+                        Serial.printf("Number: %d\n", number);
+                    }
+                }
+                else
+                {
+                    Serial.println("无效数据格式");
+                }
+            }
         }
     }
 }
