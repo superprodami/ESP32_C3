@@ -4,6 +4,6 @@
 
 
 void bluetooth_init(void);
-void blue_control_led(void);
+void blue_control(void);
 
 #endif

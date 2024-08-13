@@ -17,9 +17,10 @@ void Servo_init(void)
 
 void Servo_control(void)
 {
-    for(uint8_t i; i<ServoNum ; i++)
-    {
-        myServo[i].write(Servo_target[i]);
-    }
+    myServo[0].write(Servo_target[0]);
+    // for(uint8_t i; i<ServoNum ; i++)
+    // {
+    //     myServo[i].write(Servo_target[i]);
+    // }
 
 }

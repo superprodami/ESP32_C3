@@ -85,7 +85,7 @@ void bluetooth_init(void)
     Serial.println("Characteristic defined! Now you can read it in your phone!"); // 提示消息
 }
 
-void blue_control_led(void)
+void blue_control(void)
 {
     if (deviceConnected)
     {
