@@ -3,6 +3,6 @@
 
 
 void Serial_init(void);
-void Serial1ISR();
+void cmnt_uart(void);
 
 #endif
