@@ -1,7 +1,5 @@
 #include <Arduino.h>
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
-#include "wifi_config.h"
+// #include "wifi_config.h"
 #include "oled.h"
 #include "bluetooth.h"
 #include "Servo.h"
@@ -22,7 +20,7 @@ void setup()
   // wifi_init();
 
   // oled
-  // oled_init();
+  oled_init();
 
   // 蓝牙
   bluetooth_init();
@@ -35,16 +33,50 @@ void setup()
 }
 
 uint16_t loop_count = 0;
-
-
+uint8_t emoji_cont = 0;
+bool emoji_refresh = 0;
 void loop()
 {
 
-  //串口通信(阻塞式)
+  // 串口通信(阻塞式)
   cmnt_uart();
 
-  
-  if (loop_count % 50 == 0) 
+  if (emoji_refresh)
+  {
+    if (emoji_cont == 0)
+    {
+      emoji_normal();
+      emoji_refresh = 0;
+    }
+    else if (emoji_cont == 1)
+    {
+      emoji_angry();
+      emoji_refresh = 0;
+    }
+    else if (emoji_cont == 2)
+    {
+      emoji_sad();
+      emoji_refresh = 0;
+    }
+    else if (emoji_cont == 3)
+    {
+      emoji_happy();
+      emoji_refresh = 0;
+    }
+    else
+    {
+      emoji_cont = 0;
+    }
+  }
+
+  if (loop_count % 2000 == 1)
+  {
+    emoji_cont++;
+    emoji_refresh = 1;
+    Serial.println(emoji_cont);
+  }
+
+  if (loop_count % 50 == 0)
     blue_control();
 
   if (loop_count % 20 == 0)
